@@ -254,15 +254,28 @@ double polygonDiameter(vector<P> h){
     return mx;
 }
 template<class P>
-double minimumBoundingBox(vector<P> h){
+double polygonWidth(vector<P> h){
+    vector<pair<int,int>>app=antipodalPairs(h);
     int sz=h.size();
-    if(sz==4){
-        P e;
-        if(!lineIntersection(h[0],h[1],h[2],h[3],e)&&!lineIntersection(h[0],h[3],h[1],h[2],e)&&
-        abs(asin(abs((h[1]-h[0]).cross(h[3]-h[0])/((h[1]-h[0]).dist()*(h[3]-h[0]).dist()))-1))<=0.00001){
-            return (h[1]-h[0]).dist()*(h[3]-h[0]).dist();
+    vector<vector<int>>g(sz);
+    double mn=1e9,curr;
+    for(int i=0;i<app.size();i++){
+        g[app[i].first].push_back(app[i].second);
+        g[app[i].second].push_back(app[i].first);
+    }
+    for(int i=0;i<sz;i++){
+        for(int x=0;x<g[i].size();x++){
+            if(next(g[i][x],sz)==g[i][(x+1)%g[i].size()]){
+                curr=lineDist(h[g[i][x]],h[g[i][(x+1)%g[i].size()]],h[i]);
+                mn=min(mn,curr);
+            }
         }
     }
+    return mn;
+}
+template<class P>
+double minimumBoundingBox(vector<P> h){
+    int sz=h.size();
     int ida=0,idb=0,idc=0,idd=0;
     for(int i=0;i<sz;i++){
         if(h[i].y<h[ida].y){ida=i;}
@@ -273,7 +286,7 @@ double minimumBoundingBox(vector<P> h){
     double angle=0;
     P a1=P(h[idb].x,h[ida].y),b1=P(h[idb].x,h[idc].y),c1=P(h[idd].x,h[idc].y),d1=P(h[idd].x,h[ida].y);
     P a2,b2,c2,d2,a,b,c,d;
-   /* cout<<"ida:"<<ida<<endl;
+    cout<<"ida:"<<ida<<endl;
     cout<<"h[ida]:"<<h[ida].x<<" "<<h[ida].y<<endl;
     cout<<"idb:"<<idb<<endl;
     cout<<"h[idb]:"<<h[idb].x<<" "<<h[idb].y<<endl;
@@ -281,40 +294,50 @@ double minimumBoundingBox(vector<P> h){
     cout<<"h[idc]:"<<h[idc].x<<" "<<h[idc].y<<endl;
     cout<<"idd:"<<idd<<endl;
     cout<<"h[idd]:"<<h[idd].x<<" "<<h[idd].y<<endl;
-    cout<<"a1:"<<a1.x<<" "<<a1.y<<endl;
-    cout<<"b1:"<<b1.x<<" "<<b1.y<<endl;
-    cout<<"c1:"<<c1.x<<" "<<c1.y<<endl;
-    cout<<"d1:"<<d1.x<<" "<<d1.y<<endl;
-    */
     double pmin=(h[idc].y-h[ida].y)*(h[idb].x-h[idd].x),curr;
-    //double eps=0.000001;
+    double tetaa,tetab,tetac,tetad,tetamin;
     while(angle<3.15){
         a=h[ida];b=h[idb];c=h[idc];d=h[idd];
-        double tetaa=asin(abs((a1-a).cross(h[next(ida,sz)]-a)/((a1-a).dist()*(h[next(ida,sz)]-a).dist())));//ugao A1AAnx;
-        double tetab=asin(abs((b1-b).cross(h[next(idb,sz)]-b)/((b1-b).dist()*(h[next(idb,sz)]-b).dist())));//ugao B1BBnx;
-        double tetac=asin(abs((c1-c).cross(h[next(idc,sz)]-c)/((c1-c).dist()*(h[next(idc,sz)]-c).dist())));//ugao C1CCnx;
-        double tetad=asin(abs((d1-d).cross(h[next(idd,sz)]-d)/((d1-d).dist()*(h[next(idd,sz)]-d).dist())));//ugao D1DDnx;
+        cout<<"a:"<<a.x<<" "<<a.y<<endl;
+        cout<<"anx:"<<h[next(ida,sz)].x<<" "<<h[next(ida,sz)].y<<endl;
+        cout<<"a1:"<<a1.x<<" "<<a1.y<<endl;
+        cout<<"b:"<<b.x<<" "<<b.y<<endl;
+        cout<<"bnx:"<<h[next(idb,sz)].x<<" "<<h[next(idb,sz)].y<<endl;
+        cout<<"b1:"<<b1.x<<" "<<b1.y<<endl;
+        cout<<"c:"<<c.x<<" "<<c.y<<endl;
+        cout<<"cnx:"<<h[next(idc,sz)].x<<" "<<h[next(idc,sz)].y<<endl;
+        cout<<"c1:"<<c1.x<<" "<<c1.y<<endl;
+        cout<<"d:"<<d.x<<" "<<d.y<<endl;
+        cout<<"dnx:"<<h[next(idd,sz)].x<<" "<<h[next(idd,sz)].y<<endl;
+        cout<<"d1:"<<d1.x<<" "<<d1.y<<endl;
+        if((a1-a).dist()==0)tetaa=100;
+        else tetaa=asin(abs((a1-a).cross(h[next(ida,sz)]-a)/((a1-a).dist()*(h[next(ida,sz)]-a).dist())));//ugao A1AAnx;
+        if((b1-b).dist()==0)tetab=100;
+        else tetab=asin(abs((b1-b).cross(h[next(idb,sz)]-b)/((b1-b).dist()*(h[next(idb,sz)]-b).dist())));//ugao B1BBnx;
+        if((c1-c).dist()==0)tetac=100;
+        else tetac=asin(abs((c1-c).cross(h[next(idc,sz)]-c)/((c1-c).dist()*(h[next(idc,sz)]-c).dist())));//ugao C1CCnx;
+        if((d1-d).dist()==0)tetad=100;
+        else tetad=asin(abs((d1-d).cross(h[next(idd,sz)]-d)/((d1-d).dist()*(h[next(idd,sz)]-d).dist())));//ugao D1DDnx;
         double tetamin=min(min(tetaa,tetab),min(tetac,tetad));
-        //if(max(max(tetaa,tetab),max(tetac,tetad))<=eps){cout<<"ye"<<endl;break;}
-        /*cout<<"a1:"<<a1.x<<" "<<a1.y<<endl;
+        if(tetamin==100){cout<<"ye"<<endl;break;}
+        cout<<"a1:"<<a1.x<<" "<<a1.y<<endl;
         cout<<"a:"<<a.x<<" "<<a.y<<endl;
         cout<<"tetaa:"<<tetaa<<endl;
         cout<<"tetab:"<<tetab<<endl;
         cout<<"tetac:"<<tetac<<endl;
         cout<<"tetad:"<<tetad<<endl;
         cout<<"tetamin:"<<tetamin<<endl;
-        */
         if(tetamin==tetaa){
             a2=h[next(ida,sz)];
             b2=b+(a-h[next(ida,sz)]).perp();
             c2=c+(a-h[next(ida,sz)]);
             d2=d+(a-h[next(ida,sz)]).perp();
             ida=next(ida,sz);
-          /*  cout<<"a2:"<<a2.x<<" "<<a2.y<<endl;
+            cout<<"a2:"<<a2.x<<" "<<a2.y<<endl;
             cout<<"b2:"<<b2.x<<" "<<b2.y<<endl;
             cout<<"c2:"<<c2.x<<" "<<c2.y<<endl;
             cout<<"d2:"<<d2.x<<" "<<d2.y<<endl;
-            */
+
         }
         if(tetamin==tetab){
             a2=a+(b-h[next(idb,sz)]).perp();
@@ -342,11 +365,11 @@ double minimumBoundingBox(vector<P> h){
         lineIntersection(c,c2,d,d2,c1);
         lineIntersection(d,d2,a,a2,d1);
         curr=(a1-b1).dist()*(a1-d1).dist();
-       /* cout<<"a1:"<<a1.x<<" "<<a1.y<<endl;
+        cout<<"a1:"<<a1.x<<" "<<a1.y<<endl;
         cout<<"b1:"<<b1.x<<" "<<b1.y<<endl;
         cout<<"c1:"<<c1.x<<" "<<c1.y<<endl;
         cout<<"d1:"<<d1.x<<" "<<d1.y<<endl;
-        */
+        cout<<"//////////CURR:"<<curr<<endl;
         pmin=min(pmin,curr);
         angle+=tetamin;
     }
@@ -354,5 +377,49 @@ double minimumBoundingBox(vector<P> h){
 }
 int main()
 {
+    //vector<P> arr={P(0,0),P(1,1),P(0,2),P(-1,1)};
+    //vector<P> arr={P(0,0),P(0,1),P(1,0),P(1,1)};
+    //vector<P> arr={P(0,0),P(0,1),P(1,0)};
+    //vector<P> arr={P(0,0),P(1,1),P(1,2)};
+    //vector<P> arr={P(0,0),P(1,0),P(2,1),P(2,2),P(1,3),P(0,3),P(-1,2),P(-1,1)};
+    //vector<P> arr={P(0,0),P(1,1),P(1,2),P(0,3),P(-1,2),P(-1,1),P(0,1),P(0,2)};
+    //vector<P> arr={P(0,0),P(1,0),P(0,1)};
+    //vector<P> arr={P(0,2),P(1,3),P(0,4),P(-1,3)};
+    //vector<P> arr={P(0,0),P(0,1),P(0,2),P(0,3),P(-1,0),P(-2,0)};
+    //vector<Point<int>> arr={Point<int>(-3,-3),Point<int>(-4,-3),Point<int>(-3,-4),Point<int>(-4,-4)};
+    Sort(arr);
+    printf("sorted:\n");
+    for(auto& p:arr){
+        cout<<p.x<<" "<<p.y<<endl;
+    }
+    printf("hull:\n");
+    vector<P> h=convexHull(arr);
+    for(auto& p:h){
+        cout<<p.x<<" "<<p.y<<endl;
+    }
+    cout<<"area2:"<<area2(h)<<endl;
+    cout<<"area:"<<area(h)<<endl;
+    cout<<"ar:"<<ar(h[0],h[1],h[2])<<endl;
+    vector<pair<int,int>>ap=antipodalPairs(h);
+    for(auto& pp:ap){
+        if(pp.first>pp.second){swap(pp.first,pp.second);}
+        cout<<h[pp.first].x<<" "<<h[pp.first].y<<" and "<<h[pp.second].x<<" "<<h[pp.second].y<<endl;
+    }
+    cout<<polygonWidth(h)<<endl;
+    /*for(auto& pp:ap){
+        if(pp.first<pp.second){swap(pp.first,pp.second);}
+        cout<<h[pp.first].x<<" "<<h[pp.first].y<<" and "<<h[pp.second].x<<" "<<h[pp.second].y<<endl;
+    }*/
+    //cout<<polygonDiameter(h)<<endl;
+    //cout<<minimumBoundingBox(h)<<endl;
+//    cout<<area2(arr)<<endl;
+    /*typedef Point<int> pi;
+  	vector<pi> v; v.push_back(pi(4,4));
+  	v.push_back(pi(1,2)); v.push_back(pi(2,1));
+  	*/
+  	//Sort(v);
+  	//bool in = insidePolygon(v.begin(),v.end(), pi(3,3), false);
+  	//int in = insideHull(v, pi(3,3));
+    //cout<<in<<endl;
     return 0;
 }
