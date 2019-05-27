@@ -354,20 +354,5 @@ double minimumBoundingBox(vector<P> h){
 }
 int main()
 {
-    int n;
-    scanf("%d",&n);
-    vector<P>arr(n);
-    for(int i=0;i<n;i++){
-        double x,y;
-        cin>>x>>y;
-        arr[i]=P(x,y);
-    }
-    Sort(arr);
-    vector<P>h=convexHull(arr);
-    double per=(h[h.size()-1]-h[0]).dist();
-    for(int i=0;i<h.size()-1;i++){
-        per+=(h[i+1]-h[i]).dist();
-    }
-    printf("%.1f",per);
     return 0;
 }
